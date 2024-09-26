@@ -67,7 +67,6 @@ let TRANSLATION_EN_US = {
 			"h2": "Transition",
 			"type": {
 				"label": "Type",
-				"none": "None",
 				"scroll_up": "Scroll up",
 				"scroll_down": "Scroll down",
 				"shift_left": "Shift left",

@@ -43,7 +43,6 @@ let TRANSLATION_IT = {
 			"h2": "Transizione",
 			"type": {
 				"label": "Tipo",
-				"none": "Nessuno",
 				"scroll_up": "Scorri verso l'alto",
 				"scroll_down": "Scorri verso il basso",
 				"shift_left": "Scorri a sinistra",

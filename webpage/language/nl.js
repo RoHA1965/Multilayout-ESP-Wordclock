@@ -43,7 +43,6 @@ let TRANSLATION_NL = {
 			"h2": "Overgang",
 			"type": {
 				"label": "Type",
-				"none": "Geen",
 				"scroll_up": "Naar boven scrollen",
 				"scroll_down": "Naar beneden scrollen",
 				"shift_left": "Verschuiving naar links",

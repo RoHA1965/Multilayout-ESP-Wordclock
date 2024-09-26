@@ -83,19 +83,19 @@ protected:
 // ###############################################################################
 
 enum Transition_t {
-    NO_TRANSITION = 0,
-    ROLL_UP = 1,
-    ROLL_DOWN = 2,
-    SHIFT_LEFT = 3,
-    SHIFT_RIGHT = 4,
-    FADE = 5,
-    LASER = 6,
-    MATRIX_RAIN = 7,
-    BALLS = 8,
-    FIRE = 9,
-    SNAKE = 10,
+    ROLL_UP = 0,
+    ROLL_DOWN,
+    SHIFT_LEFT,
+    SHIFT_RIGHT,
+    FADE,
+    LASER,
+    MATRIX_RAIN,
+    BALLS,
+    FIRE,
+    SNAKE,
     // only internaly used
-    RANDOM = 11,
+    RANDOM,
+    NO_TRANSITION,
 
     BIRTHDAY = 97,
     NEWYEAR_COUNTDOWN = 98,

@@ -360,7 +360,7 @@ void ClockWork::initBootShowIp(const char *buf) {
                                      // char in the 7x5 font plus spacing
     for (uint16_t i = 0; i <= StringLength; i++) {
         scrollingText(buf);
-        delay(200);
+        delay(50);
     }
 }
 
@@ -496,7 +496,7 @@ FrontWord ClockWork::getFrontWordForNum(uint8_t min) {
 //------------------------------------------------------------------------------
 
 bool ClockWork::hasTwentyAndCheckForUsage() {
-    return usedUhrType->hasZwanzig() || G.languageVariant[ItIs40];
+    return usedUhrType->hasZwanzig() && ! G.languageVariant[ItIs20];
 }
 
 //------------------------------------------------------------------------------
@@ -682,7 +682,7 @@ void ClockWork::setMinute(uint8_t min, uint8_t &offsetHour, bool &fullHour) {
         case 40:
             if (usedUhrType->hasForty()) {
                 usedUhrType->show(FrontWord::min_40);
-            } else if (hasTwentyAndCheckForUsage()) {
+            } else if ( ! G.languageVariant[ItIs40]) {
                 usedUhrType->show(FrontWord::min_20);
                 usedUhrType->show(FrontWord::vor);
             } else {
@@ -974,7 +974,7 @@ void ClockWork::loop(struct tm &tm) {
 #if GENERAL_VERBOSE
         char currentTime[80];
         strftime(currentTime, sizeof(currentTime), "%F %T (%z)\n", &tm);
-        Serial.printf(currentTime);
+      //  Serial.printf(currentTime);
 #endif
 
         //--------------------------------------------

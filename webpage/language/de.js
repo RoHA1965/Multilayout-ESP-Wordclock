@@ -67,11 +67,10 @@ let TRANSLATION_DE_DE = {
 			"h2": "Übergang",
 			"type": {
 				"label": "Art",
-				"none": "Keines",
 				"scroll_up": "Hoch scrollen",
 				"scroll_down": "Runter scrollen",
 				"shift_left": "Nach links schieben",
-				"shift_right": "nach rechts schieben",
+				"shift_right": "Nach rechts schieben",
 				"fade": "Überblenden",
 				"laser": "Laser",
 				"matrix_rain": "Matrix Regen",

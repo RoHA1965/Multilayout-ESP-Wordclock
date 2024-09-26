@@ -43,7 +43,6 @@ let TRANSLATION_HU = {
 			"h2": "Átmenet",
 			"type": {
 				"label": "Fajta",
-				"none": "Nincs",
 				"scroll_up": "Felfelé gördíteni",
 				"scroll_down": "Lefelé görgíteni",
 				"shift_left": "Balra csúsztatni",

@@ -225,6 +225,10 @@ float Transition::pseudoRandomHue(bool init) {
         if (lastColors[i] == 9999) { // empty array element
             inUse = i;
             lastColor = lastColors[i] = hue;
+            Serial.printf("-------------\n");
+            for ( uint8_t x = 0 ; x < inUse; x++){
+                Serial.printf("c:%u: %u\n", x, lastColors[x]);
+            }
             return (static_cast<float>(hue - 1000)) / 1000.0; // 0.0 ... 1.0
         }
         if (((hue > (lastColors[i] - 100)) && (hue < (lastColors[i] + 100)))) {
@@ -244,11 +248,11 @@ float Transition::pseudoRandomHue(bool init) {
 // colorize foreground
 
 void Transition::colorize(RgbfColor **dest) {
-    bool changeColor = true;
+    bool changeColor = false;
     HsbColor hsbColor = HsbColor(foreground);
-    hsbColor.H = pseudoRandomHue();
-    foregroundMinute = isColorization() ? RgbColor(hsbColor) : foreground;
-    hsbColor.H = pseudoRandomHue();
+    hsbColor.H = pseudoRandomHue(true);
+    //foregroundMinute = isColorization() ? RgbColor(hsbColor) : foreground;
+    //hsbColor.H = pseudoRandomHue();
     for (uint8_t row = 0; row < usedUhrType->rowsWordMatrix(); row++) {
         for (uint8_t col = 0; col < usedUhrType->colsWordMatrix(); col++) {
             if (dest[row][col].isForeground()) {
@@ -269,9 +273,12 @@ void Transition::colorize(RgbfColor **dest) {
 
 void Transition::saveMatrix() {
     static bool firstRun = true;
-    copyMatrix(old, act);
+    copyMatrix(old, work);
     analyzeColors(act, STRIPE, foreground, background);
-    foregroundMinute = foreground;
+    // set color for minutearray in 5 min alignments only
+    if (! _minute % 5 || firstRun ) 
+        foregroundMinute = foreground;
+
     if (isColorization()) {
         colorize(act);
     }
@@ -352,7 +359,7 @@ void Transition::setMinute() {
         }
         for (uint8_t i = 0; i < 4; i++) {
             led.setPixel(minArray[i],
-                         HsbColor{m > i ? foreground : background});
+                         HsbColor{m > i ? foregroundMinute : background});
             // TODO: foregroundMinute
         }
     }
@@ -403,9 +410,17 @@ void Transition::fillMatrix(RgbfColor **matrix, RgbfColor color) {
 //------------------------------------------------------------------------------
 
 bool Transition::changesInTransitionTypeDurationOrDemo() {
-    return (transitionType != lastTransitionType) ||
-           (G.transitionDuration != lastTransitionDuration) ||
-           (G.transitionDemo != lastTransitionDemo);
+    if  ((transitionType != lastTransitionType) ||
+        (G.transitionDuration != lastTransitionDuration) ||
+        (G.transitionDemo != lastTransitionDemo)) {
+            lastTransitionType = transitionType;
+            lastTransitionDemo = G.transitionDemo;
+            lastTransitionDuration = G.transitionDuration;
+            copyMatrix(work, act);
+            return true;
+        }
+        else
+            return false;
 }
 
 //------------------------------------------------------------------------------
@@ -816,27 +831,31 @@ void Transition::transitionColorChange() {
     static uint32_t lastTimeColor = 0;
     static uint32_t pauseZeitColor = 50;
 
-    if (isColorization() && (G.transitionSpeed > 0)) {
-        uint32_t now = millis();
-        if (now >= (lastTimeColor + pauseZeitColor)) {
-            lastTimeColor = now;
-            float deltaHue = fmod(1.0 / (G.transitionSpeed * 20.0), 1.0);
-            HsbColor hsbColor;
-            for (uint8_t row = 0; row < usedUhrType->rowsWordMatrix(); row++) {
-                for (uint8_t col = 0; col < usedUhrType->colsWordMatrix();
-                     col++) {
-                    if (work[row][col].isForeground()) {
-                        hsbColor = HsbColor(work[row][col]);
-                        hsbColor.H = fmod(hsbColor.H + deltaHue, 1.0);
-                        work[row][col].changeRgb(hsbColor);
+    if (isColorization()){
+        if  (G.transitionSpeed > 0) {
+            uint32_t now = millis();
+            if (now >= (lastTimeColor + pauseZeitColor)) {
+                lastTimeColor = now;
+                float deltaHue = fmod(1.0 / (G.transitionSpeed * 20.0), 1.0);
+                HsbColor hsbColor;
+                for (uint8_t row = 0; row < usedUhrType->rowsWordMatrix(); row++) {
+                    for (uint8_t col = 0; col < usedUhrType->colsWordMatrix();
+                        col++) {
+                        if (work[row][col].isForeground()) {
+                            hsbColor = HsbColor(work[row][col]);
+                            hsbColor.H = fmod(hsbColor.H + deltaHue, 1.0);
+                            work[row][col].changeRgb(hsbColor);
+                        }
                     }
                 }
+                hsbColor = HsbColor(foregroundMinute);
+                hsbColor.H = fmod(hsbColor.H + deltaHue, 1.0);
+                foregroundMinute = RgbColor(hsbColor);
             }
-            hsbColor = HsbColor(foregroundMinute);
-            hsbColor.H = fmod(hsbColor.H + deltaHue, 1.0);
-            foregroundMinute = RgbColor(hsbColor);
         }
     }
+    else
+        foregroundMinute = foreground;
 }
 
 //------------------------------------------------------------------------------
@@ -884,7 +903,11 @@ uint16_t Transition::transitionFade() {
     RgbColor color;
 
     if (phase == 1) {
+        if (G.transitionSpeed == 0)
+            frames = 0;
+        
         transitionDelay = calcDelay(frames);
+
         // copyMatrix(old, work);
     }
     float progress = static_cast<float>(phase) / static_cast<float>(frames);
@@ -1018,10 +1041,7 @@ bool Transition::isOverwrittenByTransition(WordclockChanges changesInWordMatrix,
         }
     } else {
         if (changesInWordMatrix != WordclockChanges::Parameters) {
-            if (changesInWordMatrix == WordclockChanges::Words ||
-                changesInWordMatrix == WordclockChanges::Layout) {
-                initTransitionStart();
-            }
+            initTransitionStart();
             lastMinute = minute;
             matrixChanged = true;
             return false;
@@ -1050,29 +1070,25 @@ void Transition::loop(struct tm &tm) {
         specialEvent = isSpecialEvent(transitionType, tm, hasMinuteChanged());
 
         if (!specialEvent) {
-            transitionType =
+           transitionType = 
                 getTransitionType(matrixChanged); // hasMinuteChanged()
         }
 
         if (matrixChanged) {
             matrixChanged = false;
             saveMatrix();
-            copyMatrix(work, act);
         }
-
+#if 0
         if (transitionType == NO_TRANSITION) {
             if (changesInTransitionTypeDurationOrDemo()) {
-                lastTransitionType = transitionType;
-                copyMatrix(work, act);
                 colorize(work);
                 copy2Stripe(work);
                 led.show();
             }
         } else {
+#endif  
+        {           
             if (changesInTransitionTypeDurationOrDemo()) {
-                lastTransitionType = transitionType;
-                lastTransitionDemo = G.transitionDemo;
-                lastTransitionDuration = G.transitionDuration;
                 phase = 1;
             }
             if (G.transitionColorize != lastTransitionColorize) {
