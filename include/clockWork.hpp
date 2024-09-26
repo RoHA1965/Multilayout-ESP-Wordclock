@@ -446,7 +446,7 @@ FrontWord ClockWork::getFrontWordForNum(uint8_t min) {
 //------------------------------------------------------------------------------
 
 bool ClockWork::hasTwentyAndCheckForUsage() {
-    return usedUhrType->hasZwanzig() || G.languageVariant[ItIs40];
+    return usedUhrType->hasZwanzig() && ! G.languageVariant[ItIs20];
 }
 
 //------------------------------------------------------------------------------
@@ -632,7 +632,7 @@ void ClockWork::setMinute(uint8_t min, uint8_t &offsetHour, bool &fullHour) {
         case 40:
             if (usedUhrType->hasForty()) {
                 usedUhrType->show(FrontWord::min_40);
-            } else if (hasTwentyAndCheckForUsage()) {
+            } else if ( ! G.languageVariant[ItIs40]) {
                 usedUhrType->show(FrontWord::min_20);
                 usedUhrType->show(FrontWord::vor);
             } else {

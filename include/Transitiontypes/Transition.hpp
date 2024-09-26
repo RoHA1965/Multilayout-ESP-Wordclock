@@ -225,6 +225,10 @@ float Transition::pseudoRandomHue(bool init) {
         if (lastColors[i] == 9999) { // empty array element
             inUse = i;
             lastColor = lastColors[i] = hue;
+            Serial.printf("-------------\n");
+            for ( uint8_t x = 0 ; x < inUse; x++){
+                Serial.printf("c:%u: %u\n", x, lastColors[x]);
+            }
             return (static_cast<float>(hue - 1000)) / 1000.0; // 0.0 ... 1.0
         }
         if (((hue > (lastColors[i] - 100)) && (hue < (lastColors[i] + 100)))) {
@@ -244,11 +248,11 @@ float Transition::pseudoRandomHue(bool init) {
 // colorize foreground
 
 void Transition::colorize(RgbfColor **dest) {
-    bool changeColor = true;
+    bool changeColor = false;
     HsbColor hsbColor = HsbColor(foreground);
-    hsbColor.H = pseudoRandomHue();
-    foregroundMinute = isColorization() ? RgbColor(hsbColor) : foreground;
-    hsbColor.H = pseudoRandomHue();
+    hsbColor.H = pseudoRandomHue(true);
+    //foregroundMinute = isColorization() ? RgbColor(hsbColor) : foreground;
+    //hsbColor.H = pseudoRandomHue();
     for (uint8_t row = 0; row < usedUhrType->rowsWordMatrix(); row++) {
         for (uint8_t col = 0; col < usedUhrType->colsWordMatrix(); col++) {
             if (dest[row][col].isForeground()) {
@@ -269,9 +273,12 @@ void Transition::colorize(RgbfColor **dest) {
 
 void Transition::saveMatrix() {
     static bool firstRun = true;
-    copyMatrix(old, act);
+    copyMatrix(old, work);
     analyzeColors(act, STRIPE, foreground, background);
-    foregroundMinute = foreground;
+
+    if (! _minute % 5 || firstRun ) 
+        foregroundMinute = foreground;
+
     if (isColorization()) {
         colorize(act);
     }
@@ -352,7 +359,7 @@ void Transition::setMinute() {
         }
         for (uint8_t i = 0; i < 4; i++) {
             led.setPixel(minArray[i],
-                         HsbColor{m > i ? foreground : background});
+                         HsbColor{m > i ? foregroundMinute : background});
             // TODO: foregroundMinute
         }
     }
@@ -1018,10 +1025,7 @@ bool Transition::isOverwrittenByTransition(WordclockChanges changesInWordMatrix,
         }
     } else {
         if (changesInWordMatrix != WordclockChanges::Parameters) {
-            if (changesInWordMatrix == WordclockChanges::Words ||
-                changesInWordMatrix == WordclockChanges::Layout) {
-                initTransitionStart();
-            }
+            initTransitionStart();
             lastMinute = minute;
             matrixChanged = true;
             return false;
@@ -1057,7 +1061,6 @@ void Transition::loop(struct tm &tm) {
         if (matrixChanged) {
             matrixChanged = false;
             saveMatrix();
-            copyMatrix(work, act);
         }
 
         if (transitionType == NO_TRANSITION) {
