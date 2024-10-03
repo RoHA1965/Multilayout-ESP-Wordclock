@@ -310,7 +310,7 @@ void ClockWork::initBootShowIp(const char *buf) {
                                      // char in the 7x5 font plus spacing
     for (uint16_t i = 0; i <= StringLength; i++) {
         scrollingText(buf);
-        delay(200);
+        delay(50);
     }
 }
 

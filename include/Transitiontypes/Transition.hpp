@@ -823,27 +823,31 @@ void Transition::transitionColorChange() {
     static uint32_t lastTimeColor = 0;
     static uint32_t pauseZeitColor = 50;
 
-    if (isColorization() && (G.transitionSpeed > 0)) {
-        uint32_t now = millis();
-        if (now >= (lastTimeColor + pauseZeitColor)) {
-            lastTimeColor = now;
-            float deltaHue = fmod(1.0 / (G.transitionSpeed * 20.0), 1.0);
-            HsbColor hsbColor;
-            for (uint8_t row = 0; row < usedUhrType->rowsWordMatrix(); row++) {
-                for (uint8_t col = 0; col < usedUhrType->colsWordMatrix();
-                     col++) {
-                    if (work[row][col].isForeground()) {
-                        hsbColor = HsbColor(work[row][col]);
-                        hsbColor.H = fmod(hsbColor.H + deltaHue, 1.0);
-                        work[row][col].changeRgb(hsbColor);
+    if (isColorization()){
+        if  (G.transitionSpeed > 0) {
+            uint32_t now = millis();
+            if (now >= (lastTimeColor + pauseZeitColor)) {
+                lastTimeColor = now;
+                float deltaHue = fmod(1.0 / (G.transitionSpeed * 20.0), 1.0);
+                HsbColor hsbColor;
+                for (uint8_t row = 0; row < usedUhrType->rowsWordMatrix(); row++) {
+                    for (uint8_t col = 0; col < usedUhrType->colsWordMatrix();
+                        col++) {
+                        if (work[row][col].isForeground()) {
+                            hsbColor = HsbColor(work[row][col]);
+                            hsbColor.H = fmod(hsbColor.H + deltaHue, 1.0);
+                            work[row][col].changeRgb(hsbColor);
+                        }
                     }
                 }
+                hsbColor = HsbColor(foregroundMinute);
+                hsbColor.H = fmod(hsbColor.H + deltaHue, 1.0);
+                foregroundMinute = RgbColor(hsbColor);
             }
-            hsbColor = HsbColor(foregroundMinute);
-            hsbColor.H = fmod(hsbColor.H + deltaHue, 1.0);
-            foregroundMinute = RgbColor(hsbColor);
         }
     }
+    else
+        foregroundMinute = foreground;
 }
 
 //------------------------------------------------------------------------------
