@@ -924,7 +924,7 @@ void ClockWork::loop(struct tm &tm) {
 #if GENERAL_VERBOSE
         char currentTime[80];
         strftime(currentTime, sizeof(currentTime), "%F %T (%z)\n", &tm);
-        Serial.printf(currentTime);
+      //  Serial.printf(currentTime);
 #endif
 
         //--------------------------------------------

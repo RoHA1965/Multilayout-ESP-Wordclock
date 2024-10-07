@@ -410,9 +410,17 @@ void Transition::fillMatrix(RgbfColor **matrix, RgbfColor color) {
 //------------------------------------------------------------------------------
 
 bool Transition::changesInTransitionTypeDurationOrDemo() {
-    return (transitionType != lastTransitionType) ||
-           (G.transitionDuration != lastTransitionDuration) ||
-           (G.transitionDemo != lastTransitionDemo);
+    if  ((transitionType != lastTransitionType) ||
+        (G.transitionDuration != lastTransitionDuration) ||
+        (G.transitionDemo != lastTransitionDemo)) {
+            lastTransitionType = transitionType;
+            lastTransitionDemo = G.transitionDemo;
+            lastTransitionDuration = G.transitionDuration;
+            copyMatrix(work, act);
+            return true;
+        }
+        else
+            return false;
 }
 
 //------------------------------------------------------------------------------
@@ -1053,6 +1061,13 @@ void Transition::init() { saveMatrix(); }
 
 void Transition::loop(struct tm &tm) {
     static bool specialEvent;
+    static uint16_t counter = 0;
+    static uint16_t counter2 = 0;
+
+    if (++counter2 == 5000){
+        Serial.printf("LOOP %u times \n", counter2);
+        counter2 = 0;
+    }
 
     if (G.prog == COMMAND_IDLE || G.prog == COMMAND_MODE_WORD_CLOCK) {
         specialEvent = isSpecialEvent(transitionType, tm, hasMinuteChanged());
@@ -1069,17 +1084,20 @@ void Transition::loop(struct tm &tm) {
 
         if (transitionType == NO_TRANSITION) {
             if (changesInTransitionTypeDurationOrDemo()) {
-                lastTransitionType = transitionType;
-                copyMatrix(work, act);
+                Serial.printf("  changesInTransitionTypeDurationOrDemo_NO_TRANSITION\n");
                 colorize(work);
                 copy2Stripe(work);
                 led.show();
+
+            }
+            phase = 0;
+            if (++counter == 5000){
+                Serial.printf(" No transition %u times \n", counter);
+                counter = 0;
             }
         } else {
             if (changesInTransitionTypeDurationOrDemo()) {
-                lastTransitionType = transitionType;
-                lastTransitionDemo = G.transitionDemo;
-                lastTransitionDuration = G.transitionDuration;
+                Serial.printf("  changesInTransitionTypeDurationOrDemo_Transitions\n");
                 phase = 1;
             }
             if (G.transitionColorize != lastTransitionColorize) {
