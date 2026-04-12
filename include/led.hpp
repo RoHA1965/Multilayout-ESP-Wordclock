@@ -306,6 +306,18 @@ void Led::setbyMinuteArray(ColorPosition colorPosition) {
 
 //------------------------------------------------------------------------------
 
+void Led::setbyMinuteArrayByRgb(RgbColor color) {
+    /* Set minutes According to minute byte */    
+    for (uint8_t i = 0; i < 4; i++) {
+        /* Bitwise check whether Pixel bit is set */
+        if ((minuteArray >> i) & 1U) {
+            setPixel(minutePixelArray[i], color);
+        }
+    }
+}
+
+//------------------------------------------------------------------------------
+
 void Led::setbySecondArray(ColorPosition colorPosition) {
 
     HsbColor displayedColor =

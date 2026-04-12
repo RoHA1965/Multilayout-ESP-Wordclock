@@ -333,7 +333,6 @@ void ClockWork::scrollingText(const char *buf) {
 //------------------------------------------------------------------------------
 
 void ClockWork::displaySymbols(BitmapSymbol symbolNum) {
-    static uint8_t count = 0;
 
     switch (symbolNum) {
     case BitmapSymbol::HEART:

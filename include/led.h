@@ -55,6 +55,7 @@ public:
     void setbyFrontMatrix(ColorPosition position = Foreground,
                           bool applyMirrorAndReverse = true);
     void setbyFrontMatrix(HsbColor color, bool applyMirrorAndReverse = true);
+    void setbyMinuteArrayByRgb(RgbColor color);
     void setbyMinuteArray(ColorPosition position = Foreground);
     void setbySecondArray(ColorPosition position = Foreground);
     void setBitmapSymbol(BitmapSymbol symbolNum, HsbColor color);

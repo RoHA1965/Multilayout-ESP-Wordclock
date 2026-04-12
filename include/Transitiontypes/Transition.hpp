@@ -1285,7 +1285,10 @@ void Transition::loop(struct tm &tm) {
             if (!specialEvent) {
 
                 if (G.minuteVariant != MinuteVariant::Off) {
-                    led.setbyMinuteArray(Foreground);
+                    if (isColorization())
+                        led.setbyMinuteArrayByRgb(foregroundMinute);
+                    else    
+                        led.setbyMinuteArray(Foreground);
                 }
 
                 if (G.secondVariant != SecondVariant::Off) {
